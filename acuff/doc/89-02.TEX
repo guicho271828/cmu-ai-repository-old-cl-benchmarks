@@ -1,0 +1,1284 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                      PAPER-SPECIFIC   DEFINITIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\app{\mbox{\sl@\/}}
+\def\norm#1{\mbox{$#1\!\downarrow$}}
+\def\nrm#1#2{\mbox{$#2\!\downarrow_{#1}$}}
+\def\anrm#1{\nrm{\alpha}{#1}}
+\def\bnrm#1{\nrm{\beta}{#1}}
+\def\enrm#1{\nrm{\eta}{#1}}
+\def\red#1{\mbox{$\,\succ_{#1}\,$}}
+\def\ared{\red{\alpha}}
+\def\bred{\red{\beta}}
+\def\ered{\red{\eta}}
+\def\con#1{\mbox{$\longrightarrow_{#1}$}}
+\def\acon{\con{\alpha}}
+\def\bcon{\con{\beta}}
+\def\econ{\con{\eta}}
+\def\str#1{\mbox{$\stackrel{\!\!\!*}{\longrightarrow_{#1}}$}}
+\def\astr{\str{\alpha}}
+\def\bstr{\str{\beta}}
+\def\estr{\str{\eta}}
+\def\eq{\mbox{$\approx$}}
+\def\eqv#1{\mbox{$\approx_{#1}$}}
+\def\aeqv{\eqv{\alpha}}
+\def\beqv{\eqv{\beta}}
+\def\eeqv{\eqv{\eta}}
+\def\sym#1{\mbox{$\longleftrightarrow_{#1}$}}
+\def\asym{\sym{\alpha}}
+\def\bsym{\sym{\beta}}
+\def\esym{\sym{\eta}}
+\def\symstr#1{\mbox{$\stackrel{\!\!\!*}{\longleftrightarrow_{#1}}$}}
+\def\dom#1{\mbox{\bf dom$(#1)$}}
+\def\ran#1{\mbox{\bf ran$(#1)$}}
+\def\var#1{\mbox{\bf var$(#1)$}}
+\def\mgu#1{\mbox{\bf mgu$(#1)$}}
+\def\res#1{\mbox{\bf res$(#1)$}}
+\def\can#1{\mbox{\bf can$(#1)$}}
+\def\ren#1{\mbox{$#1^{\sharp}$}}
+\def\state#1#2#3#4{\mbox{$\langle#1\;|\;#2\;|\;#3\;|\;#4\rangle$}}
+\def\empset{\mbox{\O}}
+\def\pif{\mbox{\tt:-}}
+
+\def\fig#1#2#3#4{
+   \begin{figure}[#4]
+     \vspace{#1}
+     \hspace{-.3in}\special{picture #3 scaled 800}
+     \caption{#2}
+     \label{#3}
+   \end{figure}
+}
+
+\def\pgm#1{{\tt #1}}
+\def\code#1{{\em #1}}
+\def\mode#1{{\it #1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                         BEGINNING   OF   ARTICLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentstyle{kluwer}
+
+\begin{document}
+
+\title{Performance of Two Common Lisp Programs \goodbreak On Several Systems}
+\runningtitle{Performance of Two CL Programs On Several Systems}
+\titlenote{This work was sponsored by the Biomedical Research Technology Program
+of the National Institutes of Health under grant RR-00785 and by the Information
+Systems Technologies office of the Defense Advanced Research Projects Agency
+under contract N00039-86-C0033.}
+
+\author{Richard Acuff}
+\email{acuff@SUMEX-AIM.Stanford.EDU}
+
+\address{Stanford University \\
+Stanford, California  94305}
+
+\startingpage{1}
+\endingpage{36}
+\volume{\it{draft}}
+\pubyear{1989}
+
+\preamble
+
+\begin{abstract}
+
+To assist in the evaluation of Lisp platforms for the Stanford University
+Knowledge Systems Laboratory, 25 Common Lisp implementations were
+benchmarked.  Run time and compilation time data on two moderate-sized
+application programs are presented, along with data on the effect of compiler
+optimization levels and on the impact of display I/O on run time.  For these
+Lisp benchmarks, several systems did not rank where we expected them based on
+speed ratings using other conventional measures.  Also, the rankings of
+machines by Lisp speed differed for the two programs we tested.  The data
+indicate that the performance of Lisp systems is very application dependent.
+The quality of the software environment should play at least as strong a role in machine
+selection as performance benchmarks.
+\end{abstract}
+
+\section{Introduction}
+
+
+At Stanford University's Knowledge Systems Laboratory (KSL), a large amount
+of software is written in Lisp.  Thus, the performance of Lisp systems is
+often crucial to the productivity of the lab.  In order to assist us in
+understanding the performance of different Lisp systems, we have undertaken
+an informal survey of 25 Common Lisp implementations using two software
+packages developed in the KSL.  The main goal of this survey was to
+understand the execution speed performance of systems that we might use in
+the KSL for research and development or dissemination of research results.
+Secondary goals were to evaluate the effect of compiler optimizer settings on
+execution speed and to evaluate the effect of reducing the amount of output
+on execution speed.  
+
+There have been a number of projects to measure the performance of Lisp
+systems.  Gabriel's work~\cite{gabriel} is probably the best known, and is
+the origin of the so-called ``Gabriel Benchmarks,'' a set of small test
+programs for measuring specific aspects of Lisp system performance.  The
+Gabriel benchmarks are extremely valuable to people trying to compare Lisp
+systems, if used knowledgeably.  However, the aspects of a Lisp system
+stressed by a particular program are often difficult to determine so that it
+is usually best, where possible, to run a program on the systems in
+question rather than attempting to dissect the program and forecast its
+performance analytically.  Also, with the advent of numerous implementations
+of Common Lisp~\cite{steele}, we can now use much larger test programs
+without the bother and uncertainty of porting between dialects.
+
+In this survey we have focused on execution speed which has long been an
+important criterion for comparing computer systems.  The first comparison of
+two systems solving the same problem (benchmarking) was probably made shortly
+after the creation of the second computer, and benchmarking has been a
+primary differentiator among computer systems ever since.  However, execution
+speed benchmarks are only one aspect of the performance of systems,
+especially Lisp systems.  Issues like programming and user environments,
+compatibility with other systems, the ability to handle ``large'' problems, and
+cost (hardware, software, and human) must also be considered, and, given a
+machine that is ``fast enough,'' these other issues will almost always be the
+overriding factor.
+
+Descriptions of the programs used in this evaluation are given in
+Section~\ref{testsoft}.  A description of the methodology used in performing
+the tests is in Section~\ref{methodology}, and information about the Lisp
+systems tested is in Section~\ref{systems}.  Data on the execution speed of
+the test programs are presented in Section~\ref{runspeed}, followed by
+compilation speed data and a comparison between compilation speed and
+execution speed in Section~\ref{compspeed}.  The effect of choosing various
+values for the \pgm{SPEED} and \pgm{SAFETY} options of the \pgm{OPTIMIZE}
+declaration on the BB1 system are discussed in Section~\ref{optimize}.  The
+effect of reducing the screen output of the SOAR benchmark is presented in
+Section~\ref{output}.  Details of the test procedures and descriptions of the
+systems tested are in the appendices.
+
+\section{Test Software}
+\label{testsoft}
+
+The software systems used in these tests were SOAR~\cite{laird} and the BB1
+blackboard core~\cite{hrI} and~\cite{hrII}.  These test programs
+were chosen primarily because they are implemented in pure Common Lisp,
+making them extremely portable\footnote{There were one or two small porting
+difficulties that were traced to problems in the test code which had to be
+fixed.  For instance, many systems allow \pgm{(INTERN "NAME" 'USER)} where others
+require \pgm{(INTERN "NAME" (FIND-PACKAGE "USER"))}.  Also we were unable to get
+SOAR to work in either versions 1.0 or 1.1 of Allegro Common Lisp for the
+MacÊII due to unexplained software hangs so it is omitted from SOAR-related
+charts.}.  Both are systems in daily use in the KSL but represent two
+distinct research directions in terms of program function and structure.
+These systems were initially developed in environments other than those
+tested, and no attempt was made to optimize their performance for any of
+these tests.  Neither of these systems is an intensive user of numeric
+computation.
+
+A copy of the Common Lisp source code used for these tests may be obtained
+via anonymous FTP from \pgm{SUMEX-AIM.Stanford.EDU} in the \mbox{\pgm{89-02}}
+directory.  Individuals with a serious interest in these sources but without
+FTP access may contact the author by sending U.S.  Mail to ``Richard Acuff,
+Stanford KSL, 701 Welch Road, Bldg.  C, Stanford, CA 94305'' or electronic
+mail to ``\pgm{acuff@SUMEX-AIM.Stanford.EDU}''.
+
+\subsection{SOAR}
+
+SOAR is a heuristic-search based general problem solving architecture
+developed by Paul Rosenbloom, {\it et.~al.} See~\cite{laird} for more
+information on the SOAR system.
+
+All test runs of SOAR were done solving an eight-puzzle problem in one of
+three modes: mode \mode{A} (simply solve the problem), mode \mode{B} (solve
+the problem while ``chunking'' or ``learning''), and mode \mode{C} (solve the
+problem after having ``learned'' in mode \mode{B}).
+
+An ``eight puzzle'' is a common children's game with 8 tiles, numbered 1 to 8,
+on a 3 by 3 grid such that a tile adjacent to the empty place can be pushed
+into it.  ``Solving the eight-puzzle problem'' consists of producing a series
+of tile moves such that, from a given arbitrary starting configuration, the
+eight puzzle ends up with all the tiles in numerical order, reading from the
+upper left around the puzzle clockwise, with the empty place in the middle.
+
+The version of SOAR used was 4.4.4, dated April 19, 1987.  It consists of 1
+large LISP source file and 2 small SOAR files containing productions for
+solving the eight-puzzle problem.  The LISP source is 10,661 lines (280,050
+characters) of lightly commented code.
+
+\subsection{BB1}
+
+BB1 is a blackboard-based problem solving architecture developed by Barbara
+Hayes-Roth.  For more information on the BB1 blackboard core, see~\cite{hrI}.
+For further information on BB1, see~\cite{hrII}.  All references to BB1 in this
+document refer only to the ``core'' blackboard parts of the system and do not
+include any other layers of the problem solving architecture or the user
+interface, as these components are not in pure Common Lisp.  All test runs of
+BB1 went through three cycles of adding 10 items to the blackboard, accessing
+those 10 items, and then deleting them.
+
+The version of BB1 used was 1.2.  The LISP source used consists of 10 files
+ranging from 36 lines (814 characters) to 3,396 lines (107,528 characters) of
+lightly commented code, with a total of 8,722 lines (295,199 characters) of
+code.
+
+\section{Methodology}
+\label{methodology}
+
+All the tests were performed in as near to a ``normal'' working environment as
+could be achieved.  We tried to duplicate the working conditions that a
+researcher would likely have both in hardware and software.  Where possible
+we selected test machines configured with the amount of memory, amount and
+type of disk, type of display, etc.\ that a typical developer would purchase
+and use.  We ran the software in a way that a developer using the system
+would probably use it.  Thus, if it was normal to run with garbage collection
+enabled, under a window system, within an editor, or in a multi-programming
+environment, then that was done.  For instance, Sun machines were tested
+under SunView with a couple of perfmeters running.  The HP machine was tested
+while running in GnuEmacs on X.10.  MIT-style Lisp machines were run with all
+networking and other background processing on, and no special process
+priority.  No expert tuning or system configuration was done beyond what the
+tester could do by reading over the user documentation.  All systems were
+tested in single-user mode, which is the way those systems tested are normally used
+for Lisp work.
+
+We feel that although this methodology results in less repeatable and less
+explainable results, it gives a good approximation to what the end user will
+experience.  Where time allowed, multiple runs were made to ensure accurate
+readings.  Unfortunately the collection of the raw data (ie.  arranging for
+machine access and making the timed runs) proved to be an extremely time
+consuming process, taking a day or more for some of the systems, so the
+information in this report was collected over a long period of time (October,
+1987 to August 1989) and some of the data may not reflect the performance of a system's
+latest revision.
+
+The procedures used for running the tests are fully described in
+Appendix~\ref{testproc}.  The Common Lisp \pgm{TIME} macro was used to collect timing
+information.  Most times were recorded to the nearest second.  When reported
+by the \pgm{TIME} macro, some extra information, usually relating to paging,
+memory management, ``kernel'' time, etc., were recorded, but are not analyzed
+here.  If several runs were made, only the best number is reported herein for
+the sake of brevity.  Wherever possible, source files were stored on local
+disks (for the Sun 3/75 systems the files were on a Sun 3/180 NFS server on
+the same subnet).
+
+\section{Systems Under Test}
+\label{systems}
+
+The systems that we tested were chosen based on their availability to the
+testers as well as their suspected usefulness in future KSL programming
+efforts.  All of the systems tested were workstations, as we were not able to
+obtain access to mainframe systems.  It is also the case that workstations,
+with their bit-mapped displays and dedicated processors, currently provide
+the best Lisp development environments, in our opinion, and thus were more
+interesting to us.
+
+A mnemonic code is used for each of the 25 systems.  Usually the code is the
+model of the machine except where there is more than one Lisp for a machine
+(as in the case of the Sun 3/75) in which case a letter is prefixed to
+indicate the Lisp being used.  Table~\ref{map} gives a mapping between codes
+and machine types.  See Appendix~\ref{descs} for detailed descriptions of
+system configurations.
+
+This report was initially released as KSL Technical Report 89-02 in January, 1989.  In August,
+1989, three additional systems, \code{A-Sparc}, \code{F-Sparc}, and \code{NeXT}, were added
+to this survey and the results for the Franz Extended Common Lisp on the Sun 3/75 were
+updated with measurements made on the more recent Franz Allegro Common Lisp on the same
+Sun 3/75 (\code{F-3/75}).  In June, 1989 some updated figures were added to the January, 1989
+version of this paper.  The non-beta version of the Symbolics MacIvory
+(\code{Maci}), representing an average of 18\% improvement over the beta
+version, was included and the Symbolics 3600 running Release 6.1 was replaced
+by a Symbolics 3650 running Genera 7.2 (\code{3650}).
+
+\begin{table}[tb]
+\begin{center}
+\small{
+\begin{tabular}{|l|r|l|} \hline
+Code & Test Date & System Type\strut \\
+\hline
+\code{3/260}\strut & Summer 1988 & Sun 3/260 with Lucid Lisp\footnotemark \\
+\code{3/60} & Summer 1988 & Sun 3/60 with Lucid Lisp \\
+\code{386} & Spring 1988 & Compaq 386 with Lucid Lisp \\
+\code{386T} & Spring 1988 & Compaq 386 portable with Lucid Lisp \\
+\code{4/260} & Summer 1988 & Sun 4/260 with Lucid Lisp \\
+\code{4/280} & Winter 1988 & Sun 4/280 with Lucid Lisp \\
+\code{A-Sparc} & August 1989 & Sun SparcStation with \goodbreak Austin Kyoto CL \\
+\code{DEC-II} & Fall 1987 & DEC MicroVax II with VaxLisp \\ 
+\code{DEC-III} & Fall 1987 & DEC MicroVax III with VaxLisp \\
+\code{Exp1} & November 1988 & Texas Instruments Explorer I \\
+\code{Exp2} & November 1988 & Texas Instruments Explorer II \\
+\code{Exp2+} & November 1988 & Texas Instruments Explorer II Plus \\
+\code{F-3/75} & August 1989 & Sun 3/75 with Franz Allegro CL \\
+\code{F-4/280} & January 1989 & Sun 4/280 with Franz Allegro CL \\
+\code{F-Sparc} & August 1989 & Sun SparcStation with \goodbreak Franz Allegro CL \\
+\code{HP} & Fall 1987 & Hewlett Packard 9000/350 \\
+\code{K-3/75} & Fall 1987 & Sun 3/75 with Kyoto Common Lisp \\
+\code{L-3/75} & Summer 1988 & Sun 3/75 with Lucid Lisp \\
+\code{Mac2} & Spring 1988 & Apple Macintosh II with Allegro CL \\
+\code{Maci} & April 1989 & Symbolics MacIvory \\
+\code{mX} & November 1988 & Texas Instruments microExplorer \\
+\code{NeXT} & August 1989 & NeXT with Franz Allegro Common Lisp \\
+\code{RT} & Spring 1988 & IBM RT/APC with Lucid Lisp \\
+\code{3650} & April 1989 & Symbolics 3650 \\
+\code{XCL} & Winter 1988 & Xerox 1186 \\ \hline
+\end{tabular}
+}
+\end{center}
+\caption{Mapping between codes and system types}
+\label{map}
+\end{table}
+
+\section{Execution Speed}
+\label{runspeed}
+
+Most of the tables and charts in this report refer to elapsed-times
+(wall-clock time) in seconds.  Most of the tables and charts have the system
+types ordered according to what seems to be the most interesting comparison.
+We have attempted to group systems of allegedly comparable performance
+(according to our perception formed from talking to vendor representatives,
+talking to other users, reading reports, etc.)
+
+It is worth noting that on almost all of the systems tested, virtual memory
+paging was a negligible part of the overall run time for the tests.  Nor was
+it a very significant factor during compilation, except in the case of
+compiling SOAR on \code{A-Sparc}.  In general, we do not expect this to be true for
+most application systems.  Indeed, we would not be surprised if paging time
+were a major component of overall run time for most applications.
+
+\subsection{BB1}
+\footnotetext{The Lucid Common Lisp
+products tested are versions prior to multi-programming
+within the Lisp and prior to the inclusion of generation-based scavenging
+garbage collection in those systems.  The Allegro Common Lisp was not tested
+with multiprogramming enabled.}
+
+The data for the run times of the BB1\footnote{These times are for default
+settings of the \pgm{SPEED} and \pgm{SAFETY} optimization qualities discussed
+in Section~\ref{optimize}.} tests are given in Table~\ref{bb1runt}.
+Figure~\ref{bb1run} shows the data graphically.
+
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{|l|r|c@{\hspace{.5in}}|l|r|} \cline{1-2} \cline{4-5}
+Code & Sec && Code & Sec\strut \\
+\cline{1-2} \cline{4-5} 
+\code{Exp2}\strut & 27 && \code{NeXT} & 129 \\
+\code{Exp2+} & 17 && \code{RT} & 75 \\
+\code{4/260} & 56 && \code{DEC-III} & 63 \\
+\code{4/280} & 34 && \code{Exp1} & 87 \\
+\code{F-4/280} & 56 && \code{3/60} & 73 \\
+\code{A-Sparc} & 58 && \code{L-3/75} & 90 \\
+\code{F-Sparc} & 72 && \code{F-3/75} & 152 \\
+\code{386} & 47 && \code{K-3/75} & 96 \\
+\code{386T} & 54 && \code{HP} & 115 \\
+\code{mX} & 33 && \code{DEC-II} & 207 \\
+\code{Maci} & 103 && \code{XCL} & 559 \\
+\code{3650} & 76 && \code{Mac2} & 254 \\
+\code{3/260} & 62 && & \\
+\cline{1-2} \cline{4-5}
+\end{tabular}
+\end{center}
+\caption{Run times for BB1}
+\label{bb1runt}
+\end{table}
+
+\fig {4.13in}{BB1 Run (sec)}{bb1run}{tbh}
+                                                                      
+Systems that are marketed as comparable generally came out close to each
+other with the following notable exceptions: \begin{itemize} \item There was
+a significant difference between the \code{4/280} and the \code{4/260}.  Even though
+the \code{4/260} had more memory, similar disk, more tuning effort, and was
+tried with several later versions of Lisp it was consistently slower than the
+\code{4/280} tested earlier.  We are at a loss to explain this discrepancy.  It is
+also worth noting that, except for VaxLisp, Lucid Lisp seemed the most
+difficult to tailor to a particular machine when it was being installed.
+
+\item The DEC machines seem to be poor at running Lisp even though
+they are usually thought of as competitive when running FORTRAN or C.
+
+\item The microExplorer (\code{mX}) did better than expected probably
+because its weak point, paging, was not stressed by this test.
+
+\item On the same Sun 3/75, Franz Lisp did surprising poorly relative
+to Lucid Lisp.  We had expected them to be much closer in performance.
+
+\item \code{XCL} was over twice as slow as the nearest competitor.
+\end{itemize}
+
+\subsection{SOAR}
+
+The data for the SOAR run tests are given in Table~\ref{soarrunt} and presented
+graphically in Figure~\ref{soarrun}.  The figures are for the sum of the \mode{A},
+\mode{B}, and \mode{C} modes.\footnote{The \mode{A} and \mode{C} mode figures
+are for the ``no trace'' configuration as described in Section~\ref{output}.}
+
+\begin{table}[tb]
+\begin{center}
+\small
+\begin{tabular}{|l|r|c@{\hspace{.5in}}|l|r|} \cline{1-2} \cline{4-5}
+Code & Run Time && Code & Run Time\strut \\
+\cline{1-2} \cline{4-5}
+\code{Exp2}\strut & 94 && \code{NeXT} & 374 \\
+\code{Exp2+} & 62 && \code{RT} & 177 \\
+\code{4/260} & 58 && \code{DEC-III} & 454 \\
+\code{4/280} & 82 && \code{Exp1} & 369 \\
+\code{F-4/280} & 120 && \code{3/60} & 187 \\
+\code{A-Sparc} & 190 && \code{L-3/75} & 278 \\
+\code{F-Sparc} & 108 && \code{F-3/75} & 584 \\
+\code{386} & 126 && \code{K-3/75} & 697 \\
+\code{386T} & 151 && \code{HP} & 219 \\
+\code{mX} & 154 && \code{DEC-II} & 1851 \\
+\code{Maci} & 296 && \code{XCL} & 1519 \\
+\code{3650} & 219 && \code{Mac2} & N/A \\
+\code{3/260} & 154 && & \\
+\cline{1-2} \cline{4-5}
+\end{tabular}
+\end{center}
+\caption{Aggregate Run Times for SOAR (sec)}
+\label{soarrunt}
+\end{table}
+
+\fig {4.13in}{Sum of SOAR run times (sec)}{soarrun}{tbh}
+
+Once again most systems fit where expected with the following notes:
+\begin{itemize}
+
+\item The Lucid Sun 4's are somewhat faster than the TI Explorer II
+for the SOAR test whereas the opposite was true for the BB1 test.
+
+\item The \code{F-3/75} was slower (584 versus 484) than in the much older
+product tested in previous versions of this survey.
+
+\item \code{XCL} and \code{DEC-II} were over twice as slow as the nearest other
+system.
+\end{itemize}
+
+\fig {6.5in}{Normalized Run Times (time/average-time)}{normalizedrun}{tbhp}
+
+\subsection{Normalized Run Times}
+
+A given system, call it $\alpha$, may have run the SOAR test faster than
+another system, $\beta$, while $\beta$ was faster for BB1.
+Figure~\ref{normalizedrun} depicts this difference.  For both BB1 and SOAR
+the run times have been normalized by dividing the run time by the mean of
+the run times for all the machines, leaving out \code{DEC-II}, \code{Mac2},
+and \code{XCL} to improve readability.
+
+Lucid Lisp seemed to perform relatively better with SOAR than with BB1 in all
+cases, while VaxLisp and, to a much lesser extent, the dedicated Lisp
+machines, seemed to do better with BB1.
+
+There are many possible explanations for these variations, but trying to
+analyze each of them was well beyond the scope of this study.  The reasons
+are most likely a result of differences among implementations in the
+efficiency of various operations, some of which are used by SOAR but not by
+BB1 and vice versa.  For instance, SOAR might make heavy use of hashing while
+BB1 might make heavy use of list primitives, or one system might include a large
+number of \pgm{SETQ} operations while the other might be more applicative in
+nature.  The developers of SOAR and BB1 do not currently have information on
+the aspects of the Lisp systems stressed by their software.
+
+\begin{table}[tb]
+\begin{center}
+\small
+\begin{tabular}{|l|r|r|c@{\hspace{.5in}}|l|r|r|}
+\cline{1-3} \cline{5-7}
+Code & SOAR & BB1 && Code & SOAR & BB1\strut \\
+\cline{1-3} \cline{5-7}
+\code{Exp2}\strut & 132 & 89 && \code{NeXT} & 397 & 372 \\
+\code{Exp2+} & 78 & 76 && \code{RT} & 574 & 586 \\
+\code{4/260} & 307 & 324 && \code{DEC-III} & 423 & 633 \\
+\code{4/280} & 523 & 482 && \code{Exp1} & 520 & 327 \\
+\code{F-4/280} & 535 & 264 && \code{3/60} & 569 & 551 \\
+\code{A-Sparc} & 30,068 & 1,113 && \code{L-3/75} & 1,040 & 919 \\
+\code{F-Sparc} & 340 & 259 && \code{F-3/75} & 492 & 380 \\
+\code{386} & 386 & 355 && \code{K-3/75} & 1,365 & 1,234 \\
+\code{386T} & 479 & 416 && \code{HP} & 237 & 235 \\
+\code{mX} & 152 & 186 && \code{DEC-II} & 1,227 & 1,774 \\
+\code{Maci} & 757 & 766 && \code{XCL} & 1,800 & 1,927 \\
+\code{3650} & 391 & 466 && \code{Mac2} & N/A & 349 \\
+\code{3/260} & 687 & 540 && & &\\
+\cline{1-3} \cline{5-7}
+\end{tabular}
+\end{center}
+\caption{Compilation Times (sec)}
+\label{comptimet}
+\end{table}
+
+\fig {6.5in}{Compilation Time (sec)}{comptime}{tbhp}
+
+\section{Compilation Speed}
+\label{compspeed}
+
+Developers and researchers must worry about how fast their programs compile
+as well as how fast they run.  SOAR and BB1 compilation times are given in
+Table~\ref{comptimet} and Figure~\ref{comptime}.
+
+Figures~\ref{relperf} compares run time with compile time.  The ratio of
+compilation time to run time is shown.  A system with a high rating spends
+relatively more time compiling than running.  The absolute value of these
+numbers have little meaning.  They are only useful for comparing systems.
+                                                                      
+\fig {6.5in}{Relative Performance of Compiler (Compile-Time/Run-Time)}{relperf}{tbhp}
+
+As one might expect, the specially microprogrammed Lisp machines had
+relatively fast compilers.  Some machines with run times slower than
+predicted spent relatively less time compiling.  For example, the VaxLisp
+compiler was relatively fast, but generated very slow code.  The Lucid
+compiler seemed to take a long time but generated fast code.  The Allegro
+Common Lisp for the Mac II took little time but still somehow generated
+impressively fast code for BB1.
+
+
+The extremely long compile time for SOAR on \code{A-Sparc} (at 8 hours and 21
+minutes nearly 17 times longer than the next nearest) is somewhat surprising.
+Approximately 15 minutes were spent in the Lisp-to-C phase of compilation, 2
+hours were spent in the C compiler, and the remaining approximately 6 hours
+were spent in the Unix assembler.  We conjecture that the assembler was
+thrashing since the disk access light was on almost continuously for the
+duration of the assembly.  It is worth noting that we have compiled larger
+files (1,200KB versus 280KB) with \pgm{(SPEED~0) (SAFETY~3)} in approximately
+an hour and thus suspect that the high level of optimization undertaken by
+default in AKCL contributes to this extraordinary compilation time.
+
+
+\section{Effect of \pgm{OPTIMIZE} Settings on BB1}
+\label{optimize}
+
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{|l|r|r|r|r|} \hline
+Code & Default & (3, 0) & (0, 3) & (3, 2)\strut \\
+\hline
+\code{Exp2} & 27 & {\bf 25} & 27 & 25\strut \\
+\code{Exp2+} & 17 & {\bf 17} & 18 & 18 \\
+\code{4/260} & 56 & {\bf 46} & 47 & 46 \\
+\code{4/280} & 34 & {\bf 34} & 48 & 34 \\
+\code{F-4/280} & 56 & 56 & 56 & {\bf 54} \\
+\code{A-Sparc} & 58 & {\bf 58} & 94 & 64 \\
+\code{F-Sparc} & 72 & 69 & 69 & {\bf 68} \\
+\code{386} & 47 & {\bf 47} & 52 & 47 \\
+\code{386T} & 54 & {\bf 54} & 60 & 54 \\
+\code{mX} & {\bf 33} & 34 & 34 & 30 \\
+\code{Maci} & 103 & {\bf 100} & 100 & 104 \\
+\code{3650} & 76 & {\bf 74} & 74 & 75 \\
+\code{NeXT} & 129 & {\bf 126} & 131 & 130 \\
+\code{3/260} & 62 & {\bf 62} & 69 & 62 \\
+\code{RT} & 75 & 76 & 77 & {\bf 75} \\
+\code{DEC-III} & 63 & {\bf 60} & 71 & 70 \\
+\code{Exp1} & 87 & 87 & 90 & {\bf 83} \\
+\code{3/60} & 73 & {\bf 72} & 76 & 72 \\
+\code{L-3/75} & 90 & {\bf 90} & 127 & 90 \\
+\code{F-3/75} & 152 & {\bf 150} & 152 & 152 \\
+\code{K-3/75} & 96 & 165 & 147 & {\bf 88} \\
+\code{HP} & 115 & {\bf 113} & 141 & 118 \\
+\code{DEC-II} & 207 & {\bf 206} & 231 & 236 \\
+\code{XCL} & 559 & {\bf 543} & 559 & 556 \\
+\code{Mac2} & {\bf 254} & 258 & 261 & 259 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{BB1 Run Times for Various \pgm{OPTIMIZE} Settings} 
+\label{bb1runst}
+\end{table}
+
+\fig {6.5in}{BB1 runs with various \pgm{OPTIMIZE} settings (sec)}{bb1runs}{p}
+\fig {6.5in}{BB1 compilation times with various \pgm{OPTIMIZE} settings (sec)}{bb1comps}{p}
+\fig {4.125in}{BB1 Speedup Factors Due to \pgm{OPTIMIZE} Settings}{bb1speedup}{tbh}
+
+The \pgm{OPTIMIZE} declaration is a way of controlling the behavior of a
+Common Lisp compiler.  Two of the most significant qualities thus controlled
+are \pgm{SPEED} and \pgm{SAFETY}.  Each of these can be set to an integer
+from 0 to 3.  A high setting for \pgm{SPEED} tells the compiler that fast
+running code is desired, which typically enables various optimizations.  The
+Common Lisp specification doesn't require any optimizations or even that they
+necessarily be controlled by this setting, but many current implementations
+switch on optimizers such as dead code eliminators, tail and mutual recursion
+eliminators, fancy register allocators, and facilities to take advantage of
+type declarations.  The \pgm{SAFETY} quality is somewhat less well
+understood.  It has little to do with the ``safety'' of the program since a
+correct Common Lisp program is still required to run correctly if
+\pgm{SAFETY} is low, but it has an impact on the debuggibility of the
+program.  A high \pgm{SPEED} and low \pgm{SAFETY} may allow, for instance,
+disabling number-of-arguments checking to allow faster function calls on some
+architectures, or type checking on system functions (such as \pgm{CAR} or
+\pgm{SETQ}) might be disabled.  Kyoto Common Lisp (KCL) goes so far as to
+``hardwire'' function calls such that if \pgm{FOO} calls \pgm{BAR} and
+\pgm{FOO} is compiled then if \pgm{BAR} is later redefined and \pgm{FOO}
+isn't, \pgm{FOO} will continue to call the old version of \pgm{BAR}, thereby
+destroying much of the flexibility of the Lisp.
+
+We chose 4 settings of \pgm{SPEED} and \pgm{SAFETY} to study:
+\begin{enumerate}
+
+\item The default setting that the Lisp system has when it is initialized.
+This is what most people use.
+
+\item \pgm{(SPEED 3) (SAFETY 0)} written (3, 0) below, which should generate the
+fastest code.
+
+\item \pgm{(SPEED 0) (SAFETY 3)} written (0, 3) below, which should generate slow
+but very debuggible code, since the compiler should have done very few, if
+any, optimizations.
+
+\item \pgm{(SPEED 3) (SAFETY 2)} written (3, 2) below, which should generate
+optimized code while retaining ``sanity checks''.
+
+\end{enumerate}
+
+The BB1 system used in these tests has very few declarations and does little
+numerical work.  Both of these attributes seem common among most Common Lisp
+programs we use.
+
+Table~\ref{bb1runst} and Figure~\ref{bb1runs} give the results for running
+BB1 with the four \pgm{OPTIMIZE} settings.  Figure~\ref{bb1comps} shows the
+compilation times for the various \pgm{OPTIMIZE} settings.
+
+\begin{sloppypar}
+These charts reveal somewhat surprising results.  In several cases,
+\pgm{(SPEED~3) (SAFETY~0)} did not give the best results!  Lucid Lisp did
+consistently better when \pgm{SPEED} was higher than \pgm{SAFETY}, as did the
+HP 9000, and VaxLisp.  KCL was definitely behaving strangely with \pgm{(SPEED~0)
+(SAFETY~3)} coming out a good bit faster than \pgm{(SPEED~3) (SAFETY~0)}, with
+both of those much slower than ``default'' or \pgm{(SPEED~3) (SAFETY~2)}.
+\end{sloppypar}
+
+Figure~\ref{bb1speedup} depicts the speedup factor between the slowest time
+and the fastest time for the BB1 tests with various \pgm{OPTIMIZE} settings.
+                                                                      
+
+\section{Effect of Output Reduction on SOAR}
+\label{output}
+
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{|l|r|r||r|r|} \hline
+&\multicolumn{2}{|c||}{Mode A\strut}&\multicolumn{2}{|c|}{Mode B} \\ \cline{2-5}
+Code & Full & Reduced & Full & Reduced\strut\\ \hline
+\code{Exp2}\strut & 33 & 18 & 18 & 16 \\
+\code{Exp2+} & 23 & 11 & 13 & 11 \\
+\code{4/260} & 23 & 13 & 11 & 9 \\
+\code{4/280} & 35 & 15 & 14 & 11 \\
+\code{F-4/280} & 36 & 36 & 20 & 19 \\
+\code{A-Sparc} & 104 & 31 & 34 & 19 \\
+\code{F-Sparc} & 58 & 23 & 18 & 14 \\
+\code{386} & 41 & 27 & 21 & 19 \\
+\code{386T} & 52 & 31 & 26 & 23 \\
+\code{mX} & 50 & 27 & 29 & 27 \\
+\code{Maci} & 107 & 79 & 45 & 35 \\
+\code{3650} & 81 & 41 & 41 & 32 \\
+\code{NeXT} & 97 & 82 & 68 & 64 \\
+\code{3/260} & 49 & 33 & 23 & 22 \\
+\code{RT} & 61 & 36 & 32 & 28 \\
+\code{DEC-III} & 95 & 76 & 95 & 92 \\
+\code{Exp1} & 90 & 63 & 75 & 71 \\
+\code{3/60} & 66 & 38 & 34 & 31 \\
+\code{L-3/75} & 82 & 67 & 45 & 41 \\
+\code{F-3/75} & 152 & 135 & 106 & 100 \\
+\code{K-3/75} & 186 & 136 & 120 & 111 \\
+\code{HP} & 61 & 51 & 52 & 52 \\
+\code{DEC-II} & 351 & 283 & 390 & 401 \\
+\code{XCL} & 473 & 390 & 243 & 232 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{SOAR Run Times with Full and Reduced Output}
+\label{modeac}
+\end{table}
+
+%\fig {3.875in}{SOAR Mode A run time (sec)}{soara}{tbh}
+%\fig {3.875in}{SOAR Mode C run time (sec)}{soarc}{tbh}
+\fig {3.875in}{SOAR Speedup Due to Reduced Output}{soarspeedup}{tbh}
+
+\begin{sloppypar}
+The eight-puzzle benchmark for SOAR was originally written when SOAR ran
+primarily on slower machines than those tested here.  Thus it tends to
+generate a lot of output relative to the amount of computation for some of
+the modes.  For some systems, particularly those with large bit-mapped
+displays and full-screen windows, this output can be very expensive.  To
+understand the extent of this effect we tested SOAR in the \mode{A} mode and
+in the \mode{C} mode both with full output, and with greatly reduced output
+(no trace).  Table~\ref{modeac} shows
+results of these runs.  Figure~\ref{soarspeedup} depicts the amount of
+speedup (ratio of run times) realized by SOAR with reduced output.
+\end {sloppypar}
+
+Three factors seemed to influence the speedup with reduced output:
+\begin{itemize}
+\item A fast processor, since the amount of time spent computing versus doing I/O would be 
+reduced, causing a reduction in I/O time to be more significant.
+\item A larger screen or window since it is expensive to scroll a large area.
+\item A large-overhead I/O system such as the MacIvory's Dynamic Windows.
+\end{itemize}
+\section{Future Work}
+
+Obvious areas in which this work might be extended include:
+\begin{itemize}
+\item Updating the results to reflect more recent versions of the
+Common Lisp systems;
+\item Adding more test systems, especially mainframes;
+\item Benchmarking other programs besides SOAR and BB1;
+\item Evaluating the effect of declarations on run times;
+\item Adding measurements of storage management overhead;
+\item Collecting more data on I/O overhead;
+\item Understanding better why platforms vary in performance from
+application to application and Lisp implementation to Lisp implementation.
+\end{itemize}
+
+\section{Conclusions}
+
+Two moderate-sized applications, SOAR and BB1, were benchmarked on 25 Common
+Lisp systems to help in the evaluation of different Common Lisp systems.  The
+run and compile times for these benchmarks were presented and discussed.  A
+large variation was observed between the ranking of systems when running the
+SOAR test versus the ranking when running the BB1 test.  This leads us to
+conclude that while these experimental results and ones like them can be used
+to class machines together roughly, it is impossible to use such a set of
+benchmarks to decide in advance how a given application will perform on a
+given system.  There is no substitute for actually running the program on the
+systems in question.
+
+Figure 12 shows the average of the normalized\footnote{The data were normalized
+by dividing each by the average of the results for all the tested
+implementations.} run times for the test programs with the systems ranked in
+order.  On the basis of this data, the systems tested may be ranked as follows:
+
+\begin{itemize}
+\item{Very Fast} ($\leq 0.50$ anr--averaged normalized run time):\hfill\break\quad
+\begin{tabular}{ll}
+\code{Exp2+} & TI Explorer II Plus\\
+\code{Exp2} & TI Explorer II\\
+\code{4/280} & Sun 4 with Lucid Lisp\\ 
+\code{4/260} & Sun 4 with Lucid Lisp
+\end{tabular}
+
+\item{Fast} ($> 0.50$ anr, $< 1.00$ anr):\hfill\break\quad
+\begin{tabular}{ll}
+\code{mX} & TI microExplorer\\
+\code{386} & Compaq 386\\
+\code{F-4/280} & Sun 4 with Franz Lisp\\
+\code{386T} & Compaq 386 portable\\
+\code{F-Sparc} & Sun SparcStation with Franz Lisp\\
+\code{3/260} & Sun 3/260\\
+\code{A-Sparc} & Sun SparcStation with Austin KCL\\
+\code{RT} & IBM RT/APC\\
+\code{3/60} & Sun 3/60\\
+\code{3650} & Symbolics 3650
+\end{tabular}
+
+\item{Medium} ($\geq 1.00$ anr, $\leq 1.50$ anr):\hfill\break\quad
+\begin{tabular}{ll}
+\code{L-3/75} & Sun 3/75 with Lucid Lisp\\
+\code{HP} & HP 9000/350\\
+\code{Maci} & Symbolics MacIvory\\
+\code{Exp1} & TI Explorer I\\
+\code{DEC-III} & DEC MicroVax III
+\end{tabular}
+
+\item{Slow} ($> 1.50$ anr, $\leq 2.50$ anr):\hfill\break\quad
+\begin{tabular}{ll}
+\code{NeXT} & NeXT 0.9 with Franz Allegro Common Lisp\\
+\code{K-3/75} & Sun 3/75 with Kyoto Common Lisp\\
+\code{F-3/75} & Sun 3/75 with Franz Allegro Common Lisp
+\end{tabular}
+
+\item{Very Slow} ($> 2.50$ anr):\hfill\break\quad
+\begin{tabular}{ll}
+\code{Mac2} & Apple Macintosh II with Allegro Lisp\\
+\code{DEC-II} & DEC MicroVax II\\
+\code{XCL} & Xerox 1186
+\end{tabular}
+\end{itemize}
+
+\fig {4.125in}{Averaged Normalized Run Times}{anr}{tbh}
+
+We were surprised at the high speed of the small 386 machines, and at the
+slowness of the MacIvory, the DEC machines, and the Xerox machine.
+
+Dedicated Lisp machines compile relatively faster than conventional machines,
+and, generally, conventional machine systems that took more time to compile
+produced faster code, as one would expect.
+
+While the experiment to measure the effect of different settings of the
+\pgm{OPTIMZE} declaration was interesting, with such a small sample no real
+conclusion about the effect of various \pgm{OPTIMIZE} settings can be drawn.
+However the indications are that, in the absence of other declarations (eg.
+for \pgm{TYPE}), only relatively small gains are available.  It is probably
+best to experiment with various settings to see which gets the best speed for
+a given program.
+
+Reducing the amount of output that a program generates can have a large
+effect on the run time of the program, especially when moving the program to
+a faster machine.  This indicates that it is worth taking some time to
+consider the nature of the I/O system and interaction needed by a program
+when designing a user interface for a fast-running program.
+
+These results must be used very carefully since they represent only one piece
+of information about the performance of the very complex systems tested.  We
+have measured only execution speed, but many aspects of the software will
+impact the development of programs such that in a given amount of time a
+program might be written for one machine that runs faster and perhaps with
+fewer errors than a program written in the same amount of time on another
+machine that ranks faster in these tests due to superior support given to the
+programmer during development.  Do not underestimate the power of the
+programming environment.
+
+\section{Acknowledgements}
+
+This work would have been completely impossible without the assistance of
+many people and companies.  Mike Kramer of Texas Instruments Inc.\ supplied
+the Explorer II Plus processor board.  Eric Warner and Michael Borke of Sun
+Microsystems Inc.\ supplied access to the Sun 4 systems and the Sun 3/260 and
+3/60 systems.  Franz Inc.\ supplied a test version of Allegro Common Lisp for
+the Sun 3.  Marty Hollander of Franz Inc.  supplied a version of Allegro
+Common Lisp for the Sun 4.  Jeff Harvey of Digital Equipment Corp.\ arranged
+access to the MicroVax systems.  Susan Rosenbaum and Eric Gilbert of Lucid
+Inc.\ supplied access to the Compaq machines and the IBM RT.\@  Bruce Hamilton
+of Hewlett Packard Inc.\ arranged access to the HP 9000.  Carl White of
+Symbolics Inc.\ arranged access to the MacIvory and 3650.  Many thanks to all
+of them.
+
+\bibliographystyle{kluwer}
+
+\begin{thebibliography}{10}
+
+\bibitem{gabriel}
+Gabriel, R.~P.\@
+\newblock {\sl Performance and Evaluation of Lisp Programs}.
+\newblock M.I.T. Press, Cambridge, Massachusetts (1985).
+
+\bibitem{hrI}
+Hayes-Roth, B.\@
+\newblock A Blackboard Architecture for Control.
+\newblock {\sl Artificial Intelligence Journal}, 26 (1985) 251--321.
+
+\bibitem{hrII}
+Hayes-Roth, B., and Hewett, M.\@
+\newblock BB1:  An Implementation of the Blackboard Control Architecture.
+\newblock In Engelmore, R. and Morgan, T., editors, {\sl Blackboard Systems},
+Addison-Wesley (1988) 297--313.
+
+\bibitem{laird}
+Laird, J.~E., Newell, A., and Rosenbloom, P.~S.\@
+\newblock Soar: An Architecture for General Intelligence.
+\newblock {\sl Artificial Intelligence}, 33 (1987) 1--64.
+
+\bibitem{steele}
+Steele, G.~L.~jr.\@
+\newblock {\sl Common Lisp the Language}.
+\newblock Digital Press, Burlington, MA (1984).
+
+\end{thebibliography}
+
+\appendix
+
+\section{System Descriptions}
+\label{descs}
+
+This appendix contains detailed descriptions of the systems used in these
+measurements.  In the descriptions, the ``code'' used to refer to the systems
+under test in this report is in the box above the configuration information
+for a given system.  Usually the code is the model of the machine except where
+there is more than one Lisp for a machine (as in the case of the Sun 3/75) in
+which case a letter is prefixed to indicate the Lisp being used.  ``Timing
+Template'' indicates how the information reported by the \pgm{TIME} macro was
+recorded.  {\em Elapsed} indicates the total elapsed time, {\em run} indicates
+CPU time used, {\em gc} indicates time spent in garbage collection, {\em user}
+and {\em system} distinguish between user mode and kernel mode time, and
+{\em paging} indicates time waiting for virtual memory disk operations.
+
+\def\machdesca#1#2#3#4#5#6{
+\begin{center}
+\begin{tabular}{|r|p{2.9in}|}
+\hline
+\multicolumn{2}{|c|}{\bf #1\strut} \\ \hline
+Computer Type: \strut & #2 \\
+Operating System: & #3 \\
+Lisp: & #4 \\
+Disk Configuration: & #5 \\
+Swapping Size: & #6 \\
+Memory Configuration: }
+
+\def\machdescb#1#2#3#4#5#6{& #1 \\
+Display Configuration: & #2 \\
+Other Configuration: & #3\\
+Special Comments: & #4 \\
+Timing Template: & #5 \\
+Date-of-test: & #6 \\
+\hline
+\end{tabular}
+\end{center}
+}
+
+\machdesca{3/260}
+{Sun 3/260}
+{Sun OS 3.4}
+{Lucid 2.0}
+{280MB}
+{60MB}
+\machdescb{8MB}
+{Color in mono mode}
+{}
+{used \pgm{:EXPAND 130 :GROWTH-RATE 130}}
+{elapsed (user-run + system-run)}
+{Summer 1988}
+\machdesca{3/60}
+{Sun 3/60}
+{Sun OS 3.4}
+{Lucid 2.1}
+{SCSI 141MB}
+{unknown}
+\machdescb{24MB}
+{Hi Res Color in mono mode}
+{}
+{}
+{elapsed (user-run + system-run)}
+{Summer 1988}
+\machdesca{3650}
+{Symbolics 3650}
+{Symbolics Release 7.2, ECO level 6}
+{Symbolics Release 7.2, ECO level 6}
+{unknown}
+{200MB}
+\machdescb{6,144kw (27MB)}
+{}
+{no color}
+{EGC on}
+{elapsed - paging}
+{April 24, 1989}
+\machdesca{386}
+{Compaq 386 (20Mhz 386)}
+{386/IX 5.3 rev level 1.01 (unix)}
+{Lucid 2.0}
+{134MB ESDI}
+{unknown}
+\machdescb{10MB; 32kB 20ns cache}
+{terminal}
+{}
+{}
+{elapsed (run)}
+{Spring 1988}
+\machdesca{386T}
+{Compaq 386 portable (Toaster)}
+{386/IX 5.3 rev level 1.01 (unix)}
+{Lucid 2.0}
+{40MB}
+{unknown}
+\machdescb{10MB; no cache}
+{tiny LCD}
+{tiny display}
+{portable version of \code{386} above}
+{elapsed (run)}
+{Spring 1988}
+\machdesca{4/260}
+{Sun 4/260}
+{SunOS 3.2 Gamma}
+{Lucid 2.1}
+{unknown}
+{unknown}
+\machdescb{32MB}
+{Hi Res color in mono}
+{}
+{used \pgm{:EXPAND 130 :GROWTH-RATE 130}}
+{elapsed (user-run + system-run)}
+{Summer 1988}
+\machdesca{4/280}
+{Sun 4/280}
+{SunOS 3.2 Gamma}
+{Lucid 2.1 beta}
+{417 (Eagle)}
+{60MB}
+\machdescb{8MB}
+{Hi Res mono}
+{}
+{}
+{elapsed (user-run + system-run)}
+{Winter 1988}
+\machdesca{A-Sparc}
+{Sun SparcStation}
+{Sun OS 4.0}
+{Austin Kyoto Common Lisp}
+{1x600MB SCSI}
+{Large}
+\machdescb{16MB}
+{Color}
+{}
+{}
+{elapsed (lispcpu)}
+{August 1989}
+\machdesca{DEC-II}
+{DEC MicroVax II/GPX}
+{VMS}
+{VaxLisp}
+{2 x 159MB}
+{3k pg page, 8k pg swap}
+\machdescb{16MB}
+{GPX}
+{}
+{}
+{elapsed - gc-elapsed (run - gc-run)}
+{Fall 1987}
+\machdesca{DEC-III}
+{DEC MicroVax III (3500)}
+{VMS}
+{VaxLisp}
+{(RD53)}
+{unknown}
+\machdescb{16MB}
+{mono}
+{}
+{}
+{elapsed - gc-elapsed (run - gc-run)}
+{Fall 1987}
+\machdesca{Exp1}
+{Texas Instruments Explorer I}
+{Explorer Lisp Release 4.1}
+{Explorer Lisp Release 4.1}
+{2 x 140MB SCSI}
+{80MB}
+\machdescb{8MB}
+{1024 x 768 mono}
+{}
+{TGC on }
+{elapsed - paging}
+{November 1988}
+\machdesca{Exp2}
+{Texas Instruments Explorer II}
+{Explorer Lisp Release 4.1}
+{Explorer Lisp Release 4.1}
+{2 x 140MB SCSI}
+{80MB}
+\machdescb{16MB}
+{1024 x 768 mono}
+{}
+{TGC on}
+{elapsed - paging}
+{November 1988}
+\machdesca{Exp2+}
+{Texas Instruments Explorer II Plus}
+{Explorer Lisp Release 4.1}
+{Explorer Lisp Release 4.1}
+{2 x 140MB SCSI}
+{80MB}
+\machdescb{16MB}
+{1024 x 768 mono}
+{}
+{TGC on}
+{elapsed - paging}
+{November 1988}
+\machdesca{F-3/75}
+{Sun 3/75}
+{SunOS 4.0}
+{Franz Allegro Common Lisp 3.0.3}
+{70MB SCSI}
+{50MB local}
+\machdescb{28MB}
+{standard resolution mono}
+{Files on Sun 3/180 NFS server}
+{Under suntools}
+{elapsed (totalcpu)}
+{August 1989}
+\machdesca{F-4/280}
+{Sun 4/280}
+{SunOS 4.0}
+{Franz Allegro Common Lisp 3.0.1 beta}
+{2x900}
+{118MB}
+\machdescb{32MB}
+{Hi Res mono}
+{Not running under GnuEmacs; no multi-processing; 4MB initial memory}
+{}
+{elapsed (user-run + system-run)}
+{Winter 1989}
+\machdesca{F-Sparc}
+{Sun SparcStation}
+{Sun OS 4.0}
+{Franz Allegro Common Lisp 3.1.beta.20}
+{600MB SCSI}
+{Large}
+\machdescb{16MB}
+{Color}
+{}
+{}
+{elapsed (totalcpu)}
+{August 1989}
+\machdesca{HP}
+{Hewlett Packard 9000/350}
+{Unix}
+{HP Lisp 1.0}
+{130MB (7958)}
+{unknown}
+\machdescb{16MB}
+{color}
+{under gnuemacs}
+{}
+{elapsed - run}
+{Fall 1987}
+\machdesca{K-3/75}
+{Sun 3/75}
+{SunOS 3.1}
+{Kyoto Common Lisp ``September 16, 1986''}
+{70MB SCSI}
+{50MB local}
+\machdescb{28MB}
+{standard resolution mono}
+{Files on Sun 3/180 NFS server}
+{Under suntools}
+{elapsed - run}
+{Fall 1987}
+\machdesca{L-3/75}
+{Sun 3/75}
+{SunOS 3.1}
+{Lucid 2.0}
+{70MB SCSI}
+{50MB local}
+\machdescb{28MB}
+{standard resolution mono}
+{Files on Sun 3/180 NFS server}
+{used \pgm{:EXPAND 90 :GROWTH-RATE 90}}
+{elapsed (user-run + system-run)}
+{Fall 1987}
+\machdesca{Mac2}
+{Apple Macintosh II}
+{Mac OS 5}
+{Allegro Common Lisp 1.1}
+{100MB internal}
+{n/a}
+\machdescb{5MB}
+{E-machines Big Picture 17" mono}
+{}
+{}
+{elapsed - paging}
+{Spring 1988}
+\machdesca{Maci}
+{Symbolics MacIvory}
+{Genera 7.4}
+{Genera 7.4}
+{300MB external}
+{160,000kW (80MB)}
+\machdescb{5,376kW (27MB); 2MB Mac II}
+{Radius 19"}
+{Apple EtherTalk}
+{}
+{elapsed - paging}
+{April 24, 1989}
+\machdesca{mX}
+{Texas Instruments microExplorer}
+{Explorer Lisp 5.0}
+{Explorer Lisp 5.0}
+{100MB Rodime}
+{60MB}
+\machdescb{12MB mX processor; 2MB Mac II}
+{24" (1280 x 960) Moniterm Viking II}
+{Apple EtherTalk}
+{}
+{elapsed - paging}
+{December 1988}
+\machdesca{NeXT}
+{NeXT}
+{0.9}
+{Franz Allegro Common Lisp 3.1.0.5}
+{Internal SCSI}
+{unknown}
+\machdescb{8MB}
+{}
+{}
+{}
+{elapsed (totalcpu)}
+{August 1989}
+\machdesca{RT}
+{IBM RT/APC}
+{AIX 2.1.2 (unix)}
+{2.0.5 (Lucid 1.01)}
+{``Fast'' EESDI controller; 3 x 70MB}
+{80k x 512kB blocks (40,960MB)}
+\machdescb{16MB of ``fast'' memory}
+{Moniterm 1024 x 768 mono}
+{AFT floating point unit; GSL windows}
+{Used \pgm{:EXPAND 69} to get 6MB semispace;
+This should be the fastest RT version now available}
+{elapsed (user-run + system-run)}
+{Spring 1988}
+\machdesca{XCL}
+{Xerox 1186}
+{Xerox Lisp, Lyric release}
+{Xerox Lisp, Lyric release}
+{40MB}
+{16MB}
+\machdescb{3.5MB}
+{19" mono}
+{}
+{}
+{elapsed - gc - paging}
+{Winter 1988}
+
+\section{Test Procedures}
+\label{testproc}
+
+To run a BB1 test the following procedure was followed:
+\begin{enumerate}
+\item The \pgm{.LISP} files were copied to the host under test.
+
+\item Lisp was restarted and any necessary configuration, such as disabling
+end-of-screen processing, was done.
+
+\begin{sloppypar}
+\item If necessary, a \pgm{(PROCLAIM '(OPTIMIZE (SPEED~$x$) (SAFETY~$y$)))} form
+was entered.
+\end{sloppypar}
+
+\item The form \pgm{(TIME (LOAD "COMPILE-BB1.LISP"))} was entered and allowed to
+complete without interruption, and the resulting information was recorded.  A
+side effect of loading the \pgm{COMPILE-BB1} file is that the source files are
+compiled and loaded.
+
+\item The form \pgm{(TIME (BB1::TEST-BBEDIT))} as entered and allowed to
+complete.  The results were recorded.
+
+\item Step 5 was repeated, which usually resulted in a better time.
+
+\item Steps 2 through 6 were done a total of 4 times; once skipping step 3 and
+then for $(X,ÊY)Ê=Ê(3,Ê0)$, $(0,Ê3)$, and $(3,Ê2)$.
+
+\end{enumerate}
+
+To run a SOAR test the following procedure was followed:
+\begin{enumerate}
+\item The \pgm{.LISP} and \pgm{.SOAR} files were copied to the host under test.
+
+\item Lisp was restarted and any necessary configuration, such as disabling
+end-of-screen processing, was done.
+
+\item The form \pgm{(TIME (COMPILE-FILE "SOAR.LISP"))} was entered and
+allowed to complete.  The results were recorded.
+
+\item Step 2 was repeated.
+
+\item The following forms were entered:\pgm{\newline
+\quad (LOAD "SOAR")\newline
+\quad (LOAD "DEFAULT.SOAR")\newline
+\quad (LOAD "EIGHT.SOAR")}
+
+\item The form \pgm{(TIME (RUN-TASK))} was entered.
+``1\fbox{\tt Return}\linebreak[0]3\fbox{\tt Return}'' was immediately typed
+ahead as responses to the prompts soon to follow.  The timing was allowed to
+complete and the results recorded for the \mode{A} mode test.
+
+\item The form \pgm{(INIT-SOAR)} was entered.
+
+\item Step 6 was repeated with
+``1\fbox{\tt Return}\linebreak[0]1\fbox{\tt Return}'' in place of
+``1\fbox{\tt Return}\linebreak[0]3\fbox{\tt Return}'' for the \mode{B} mode
+test.
+
+\item Steps 7 and 8 were repeated with
+``3\fbox{\tt Return}\linebreak[0]3\fbox{\tt Return}'' in place of
+``1\fbox{\tt Return}\linebreak[0]3\fbox{\tt Return}'' for the \mode{C} mode
+test.
+
+\item 	The following forms were entered:\newline\pgm{
+\quad (EXCISE EIGHT*MONITOR-STATE)\newline
+\quad (WATCH -1)}
+
+\item Step 9 was repeated for the ``\mode{C} no trace'' mode test.
+
+\item Steps 2 and 5 were repeated to reload SOAR.
+
+\item Steps 7 and 8 were repeated for the ``\mode{A} no trace'' mode test.
+
+\end{enumerate}
+
+\end{document}

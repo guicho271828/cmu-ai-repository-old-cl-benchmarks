@@ -1,0 +1,47 @@
+(in-package 'compiler)
+;;in cmpeval.lsp
+
++        ((and (setq fd (get fname 'co1))
++	      (funcall fd args)))
+        ((and (setq fd (get fname 'c1)) (inline-possible fname))
+         (funcall fd args))
+        ((and (setq fd (get fname 'c1conditional))
+        
+
+(si::putprop 'schar 'co1schar 'co1)
+
+(defun co1schar (args)
+   (and (listp (car args)) (not *safe-compile*)
+	(cdr args)
+	(eq (caar args) 'symbol-name)
+	(print `(aref (the string ,(second (car args)))
+			,(second args)))
+	(c1expr `(aref (the string ,(second (car args)))
+			,(second args)))))
+
+(si::putprop 'schar 'co1schar 'co1)
+
+(defconstant bil #\a)
+(defun fo ()(disassemble '(defun joe (a) (eql bil (schar (symbol-name a) 3)))))
+
+(defun replace-constant (lis &aux found)
+  (do ((v lis (cdr v)))
+      ((null v) (print lis) found)
+      (cond ((constantp (car v))
+	     (setq found t) (setf (car v) (eval (car v)))))))
+
+;;optimize common case of eql with constant 
+(defun co1eql (args)
+  (or (cdr args) (not *safe-compile*) (return nil))
+  (cond ((replace-constant args)
+	 (cond ((characterp (second args))
+		(setq args (reverse args))))
+	 (cond ((characterp (car args))
+		(c1expr `(= (char-code ,(car args))
+			    (char-code ,(second args)))))))))
+	 
+(si::putprop 'eql 'co1eql 'co1)		    
+
+
+
+

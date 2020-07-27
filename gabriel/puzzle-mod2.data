@@ -1,0 +1,62 @@
+          
+#(
+user::puzzle-size
+511
+user::puzzle-classmax
+3
+user::puzzle-typemax
+12
+0
+user::**iii**
+user::**kount**
+8
+user::puzzle-d
+(lisp::type lisp::fixnum user::**iii** user::**kount** user::puzzle-d)
+:element-type
+lisp::fixnum
+:initial-element
+user::piececount
+user::puzzle-class
+user::piecemax
+user::puzzle
+user::puzzle-p
+(lisp::type (lisp::array lisp::fixnum) user::piececount user::puzzle-class user::piecemax)
+lisp::the
+lisp::aref
+(lisp::type lisp::simple-vector user::puzzle)
+(lisp::type (lisp::simple-array lisp::t (13 512)) user::puzzle-p)
+(lisp::function user::place (lisp::fixnum lisp::fixnum) lisp::fixnum)
+(lisp::function user::puzzle-remove (lisp::fixnum lisp::fixnum) lisp::fixnum)
+1
+5
+2
+13
+"~%Error."
+"~%Success in ~4D trials."
+"~%Failure."
+lisp::*trace-output*
+"real time : ~,3F secs~%~
+              run time  : ~,3F secs~%"
+60
+system::*make-constant
+lisp::proclaim
+lisp::make-array
+user::fref
+user::fit
+system::debug
+user::jil
+user::place
+user::puzzle-remove
+user::trial
+user::definepiece
+user::puzzle-start
+user::testpuzzle
+(lisp::nil)
+(lisp::nil)
+(lisp::nil)
+(lisp::nil)
+(lisp::nil)
+(lisp::nil)
+(user::**kount**)
+(lisp::nil)
+)

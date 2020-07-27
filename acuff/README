@@ -1,0 +1,8 @@
+This directory contains the source code for the benchmark programs
+used to gather data for "Performance of Two Common Lisp Programs on
+Several Systems", Stanford University Knowledge Systems Lab Report
+number 89-02.  The file KSL-TR-89-02.Hqx is a version of the MicroSoft
+word source for the document encoded with BinHex4.0.  The paper
+contains information on running the tests.
+
+Send comments to acuff@SUMEX-AIM.Stanford.EDU

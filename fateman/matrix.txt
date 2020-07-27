@@ -1,0 +1,138 @@
+Article 9249 of comp.lang.lisp:
+Path: crabapple.srv.cs.cmu.edu!cantaloupe.srv.cs.cmu.edu!das-news.harvard.edu!ogicse!emory!gatech!usenet.ins.cwru.edu!agate!peoplesparc.Berkeley.EDU!fateman
+From: fateman@peoplesparc.Berkeley.EDU (Richard Fateman)
+Newsgroups: comp.lang.lisp
+Subject: Fortran vs. Lisp timings
+Summary: How fast can you multiply  matrices?
+Message-ID: <1ks3ng$esm@agate.berkeley.edu>
+Date: 4 Feb 93 22:01:20 GMT
+Article-I.D.: agate.1ks3ng$esm
+Distribution: world
+Organization: University of California, Berkeley
+Lines: 122
+NNTP-Posting-Host: peoplesparc.berkeley.edu
+
+One of the issues that has come up in discussions of Lisp vs.
+mainstream languages, is the quality of the compiler.  I've
+done some testing on various problems, and here is my
+conclusion about the current state of a few compilers, with
+respect to something that one other language's compiler does
+OK on. Floating point.
+
+The fortran (f77) compiler, with default settings on SPARC1+
+computers produces code that runs about as fast as the
+Allegro CL 4.1 compiler, with "optimize speed (safety 0)" and careful
+declarations.
+
+The fortran compiler with full optimization (-fast -O3 options)
+produces code that runs about 10 times faster than either of the previously
+indicated situations.
+
+
+I would be delighted to hear other peoples' results.
+(Though if all you are comparing is the same 2 pieces of software on the
+same hardware, I guess I would be bored :)).
+
+  For reference, here are the 2 benchmarks.
+
+Here is a fortran program that on a SPARC1+
+runs a 100x100 by 100x100  matrix mult in 4.9 seconds; 0.48 seconds with
+high optimization.
+
+
+c     main program/ driver
+      dimension u(100,100),v(100,100),w(100,100),tarr(2)
+c     set up test matrices
+      do 10 i=1,100
+         do 10 j=1,100
+            v(i,j)=1.0
+ 10         u(i,j)=1.0
+c    initialize timer
+      start=dtime(tarr)
+      call matmul(u,v,w,100,100,100)
+      elapsed=dtime(tarr)
+c     print user and system time in seconds
+      print 1, tarr(1),tarr(2)
+ 1    format(f12.3)
+      end
+
+c     this is what we are comparing -- time for matmul
+      subroutine matmul(a,b,c,n,m,k)
+      dimension a(n,m),b(m,k),c(n,k)
+      do 30 i=1,n
+         do 30 j=1,k
+            sum=0.0
+            do 20 l=1,m
+ 20            sum=sum+a(i,l)*b(l,j)
+ 30      c(i,j)=sum
+         end
+
+.............................
+
+Here is the Lisp program I am comparing it with. It takes 5.1 seconds
+to run, compiled in Allegro CL 4.1.  (Note, I am told that Allegro 4.2 
+will do better on this.)
+......................
+;; -*- mode: common lisp; -*-
+
+#| Experiments with matrix multiply in Lisp.
+      
+          Compute C=A.B, matrix product
+
+|#
+
+(defun matmul(a b c n m k)  
+  ;; in Allegro 4.1 this allocates no new
+  ;; floating point space, and therefore does no GC.
+  
+  (declare   (optimize speed (safety 0))
+	     (type (simple-array single-float (* *)) a b c)
+	     (fixnum n m k))
+
+  (let ((sum 0.0))
+    (declare (single-float sum))
+    (dotimes (i n c)		;run through columns; return c
+      (declare (fixnum i))
+      (dotimes (j k)
+	(declare (fixnum j))
+	(setf sum 0.0)
+	(dotimes (l m)
+	  (declare (fixnum l))
+
+	  (setf sum (+ sum (* (aref a i l)(aref b l j)))))
+	(setf (aref c i j) sum)))))
+
+
+
+;;Some test data
+(defparameter n0 100)
+(defparameter m0 100)
+(defparameter k0 100)
+
+(defparameter a0
+    (make-array (list n0 m0) :element-type 'single-float :initial-element 1.0))
+;;a0 is n columns, m rows
+
+(defparameter b0 
+    (make-array (list m0 k0) :element-type 'single-float :initial-element 2.0))
+;;b0 is m columns k rows
+
+(defparameter  c0 
+    (make-array (list n0 k0) :element-type 'single-float))
+;; c0 is n columns k rows
+
+#| to time this, compile the matmul, and
+
+(time (matmul? a0 b0 c0 n0 m0 k0))
+|#
+.............
+
+I will be glad to summarize info mailed to me.
+
+
+
+-- 
+Richard J. Fateman
+fateman@cs.berkeley.edu   510 642-1879
+
+

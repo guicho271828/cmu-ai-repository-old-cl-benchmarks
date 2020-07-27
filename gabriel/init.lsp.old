@@ -1,0 +1,24 @@
+(si::set-hole-size 1000)
+(allocate 'cons 2000  t)
+(allocate 'fixnum 400)
+(allocate 'cfun 400)
+(si::allocate-relocatable-pages 700 t)
+(gbc 1)
+(setq si::*notify-gbc* t)
+;;so that the lisps do the same thing.
+(setq *print-pretty* nil)
+;#+sparc(setq compiler::*cc* (concatenate 'string compiler::*cc* " -O4 "))
+;(setq compiler::*cc* "/u15/gcc-2/gcc -B/u15/gcc-2/ -I/u15/gcc-2/include -I/u15/gcc-2 -DVOL=volatile -W -DMUST_COPY_VA_LIST")
+;(setq compiler::*cc* "mygcc -DVOL=volatile -W -DMUST_COPY_VA_LIST")
+;(setq compiler::*cc* "cc -DVOL= ")
+;(trace system)
+
+
+
+      
+
+
+
+
+	 
+    
